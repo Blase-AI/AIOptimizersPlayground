@@ -9,6 +9,11 @@
 - Lion
 - Adan
 - MARS
+- Adagrad
+- Sophia
+- AMSGrad
+- LARS
+- Adam
 
 Также присутствует вспомогательная функция `timed`, которая используется для замера времени выполнения операций.
 
@@ -22,6 +27,11 @@ from .Aw import AdamW
 from .L import Lion
 from .An import Adan
 from .Make_vAriance_Reduction_Shine import MARS
+from .Agrad import Adagrad
+from .Sophia import Sophia
+from .AMSGrad import AMSGrad
+from .LARS import LARS
+from .Adaptive import Adam
 from .dtime import timed 
 
 __all__ = [
@@ -31,5 +41,10 @@ __all__ = [
     "AdamW",
     "Lion",
     "Adan",
-    "MARS"
+    "MARS",
+    "Adagrad",
+    "Sophia",
+    "AMSGrad",
+    "LARS",
+    "Adam"
 ]
