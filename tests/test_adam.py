@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from numpy.typing import NDArray
-from optimizers import Adam  # Adjust import based on your module structure
+from optimizers import Adam  
 
 @pytest.fixture
 def simple_params_and_grads():
