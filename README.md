@@ -1,1 +1,1 @@
-# OptiVerse
+# AI Optimizers Playground
