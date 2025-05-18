@@ -51,7 +51,7 @@ class MARS(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = MARS(learning_rate=0.01, momentum=0.9, avg_beta=0.1)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с учетом усреднения и импульса
+            updated = optimizer.step(params, grads)  
         """
         super().__init__(
             learning_rate=learning_rate,
