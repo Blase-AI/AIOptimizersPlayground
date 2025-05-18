@@ -12,8 +12,8 @@ logging.basicConfig(level=logging.INFO, filename="optimizer_debug.log")
 logger = logging.getLogger(__name__)
 
 st.set_page_config(
-    page_title="AI Optimizers Playground",
-    page_icon="📊",
+    page_title="🧪AI Optimizers Playground",
+    page_icon="🧪",
     layout="wide"
 )
 
