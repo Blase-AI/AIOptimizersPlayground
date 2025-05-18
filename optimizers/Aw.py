@@ -44,7 +44,7 @@ class AdamW(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = AdamW(learning_rate=0.001, beta1=0.9, beta2=0.999, weight_decay=0.01)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с учетом моментов и регуляризации
+            updated = optimizer.step(params, grads)  
         """
         super().__init__(
             learning_rate=learning_rate,
