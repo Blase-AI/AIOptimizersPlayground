@@ -57,7 +57,7 @@ class GradientDescent(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = GradientDescent(learning_rate=0.1)
-            updated = optimizer.step(params, grads)  # [np.array([0.95]), np.array([1.9])]
+            updated = optimizer.step(params, grads) 
         """
         lr = self.learning_rate * self.decay_rate ** self.iteration
         updated_params = [p - lr * g for p, g in zip(params, grads)]
