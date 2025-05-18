@@ -46,7 +46,7 @@ class Adan(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = Adan(learning_rate=0.002, beta1=0.9, beta2=0.999, beta3=0.999)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с учетом моментов
+            updated = optimizer.step(params, grads)  
         """
         super().__init__(
             learning_rate=learning_rate,
