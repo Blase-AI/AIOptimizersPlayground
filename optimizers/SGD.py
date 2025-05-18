@@ -41,7 +41,7 @@ class StochasticGradientDescent(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = StochasticGradientDescent(learning_rate=0.1, momentum=0.9)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с учетом импульса
+            updated = optimizer.step(params, grads) 
         """
         super().__init__(
             learning_rate=learning_rate,
