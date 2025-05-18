@@ -47,7 +47,7 @@ class RMSProp(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = RMSProp(learning_rate=0.001, rho=0.9, momentum=0.9)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с учетом сглаживания
+            updated = optimizer.step(params, grads) 
         """
         super().__init__(
             learning_rate=learning_rate,
