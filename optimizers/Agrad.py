@@ -44,7 +44,7 @@ class Adagrad(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = Adagrad(learning_rate=0.01, eps=1e-8)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с адаптивным масштабированием
+            updated = optimizer.step(params, grads)  
         """
         super().__init__(
             learning_rate=learning_rate,
