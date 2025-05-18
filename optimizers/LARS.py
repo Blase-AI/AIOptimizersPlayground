@@ -42,7 +42,7 @@ class LARS(BaseOptimizer):
             params = [np.array([1.0]), np.array([2.0])]
             grads = [np.array([0.5]), np.array([1.0])]
             optimizer = LARS(learning_rate=0.01, momentum=0.9, trust_coeff=0.001)
-            updated = optimizer.step(params, grads)  # Обновленные параметры с адаптивным масштабированием
+            updated = optimizer.step(params, grads)  
         """
         super().__init__(
             learning_rate=learning_rate,
