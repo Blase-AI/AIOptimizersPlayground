@@ -221,7 +221,7 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Ошибка при перезапуске: {e}")
     
-    save_results = st.button("💾 Сохранить результаты", key="save_results_btn")
+    #save_results = st.button("💾 Сохранить результаты", key="save_results_btn")
 
 tab1, tab2, tab3, tab4 = st.tabs(["Визуализация", "Метрики", "Описание", "Руководство"])
 
