@@ -771,24 +771,50 @@ with tab4:
 
 if save_results and st.session_state.trajectories:
     results = {}
-    for opt_name, data in st.session_state.trajectories.items():
-        min_len = min(len(data['traj']), len(data['loss']))
-        if min_len == 0:
-            st.warning(f"Нет данных для сохранения для {opt_name}")
-            continue
-        df = pd.DataFrame({
-            'x': [p[0] for p in data['traj'][:min_len]],
-            'y': [p[1] for p in data['traj'][:min_len]],
-            'loss': data['loss'][:min_len],
-            'grad_norm': data['grad_norms'][:min_len] if data['grad_norms'] else [0] * min_len
-        })
-        df.to_csv(f"{opt_name}_{test_func}_results.csv", index=False)
-        results[opt_name] = df.to_dict()
-    with open(f"{test_func}_results.json", "w") as f:
-        json.dump(results, f)
-    st.success("Результаты сохранены в CSV и JSON!")
+    zip_buffer = io.BytesIO() 
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for opt_name, data in st.session_state.trajectories.items():
+            traj_len = len(data['traj']) if data['traj'] else 0
+            loss_len = len(data['loss']) if data['loss'] else 0
+            min_len = min(traj_len, loss_len)
+            if min_len == 0:
+                st.warning(f"Нет данных для сохранения для {opt_name}")
+                continue
+            x = [p[0] for p in data['traj'][:min_len]]
+            y = [p[1] for p in data['traj'][:min_len]]
+            loss = data['loss'][:min_len]
+            grad_norms = data['grad_norms'][:min_len] if data['grad_norms'] else [0] * min_len
+            min_len = min(len(x), len(y), len(loss), len(grad_norms))
+            x = x[:min_len]
+            y = y[:min_len]
+            loss = loss[:min_len]
+            grad_norms = grad_norms[:min_len]
+            df = pd.DataFrame({
+                'x': x,
+                'y': y,
+                'loss': loss,
+                'grad_norm': grad_norms
+            })
+            csv_buffer = df.to_csv(index=False).encode('utf-8')
+            zip_file.writestr(f"{opt_name}_{test_func}_results.csv", csv_buffer)
+            results[opt_name] = df.to_dict()
+        json_buffer = json.dumps(results).encode('utf-8')
+        zip_file.writestr(f"{test_func}_results.json", json_buffer)
+    zip_buffer.seek(0)
     with tab2:
         st.markdown("### Сохраненные данные")
+        with st.container():
+            st.markdown(" ")  
+            st.download_button(
+                label="📥 Скачать результаты (ZIP)",
+                data=zip_buffer,
+                file_name=f"{test_func}_results.zip",
+                mime="application/zip",
+                key="download_zip",
+                help="Скачать ZIP-архив с результатами всех оптимизаторов"
+            )
+            st.markdown(" ")  
         for opt_name, data in results.items():
             st.markdown(f"**{opt_name}**")
             st.dataframe(pd.DataFrame(data))
+    st.success("Файлы готовы для скачивания! Нажмите на кнопку во вкладке 'Метрики'.")
