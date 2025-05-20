@@ -182,7 +182,7 @@ with st.sidebar:
     with st.expander("Визуализация"):
         show_surface = st.checkbox("Показать поверхность", value=True, key="show_surface_cb")
         show_3d = st.checkbox("3D визуализация", value=True, key="show_3d_cb")
-        show_colorbar = st.checkbox("Показать шкалу цветов", value=True, key="show_colorbar_cb")
+        show_colorbar = st.checkbox("Показать шкалу цветов", value=False, key="show_colorbar_cb")
         st.session_state.color_scheme = st.selectbox(
             "Цветовая палитра", ["Viridis", "Plasma", "Inferno", "Magma", "Cividis", "Plotly"],
             index=["Viridis", "Plasma", "Inferno", "Magma", "Cividis", "Plotly"].index(st.session_state.color_scheme),
