@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO, filename="optimizer_debug.log")
 logger = logging.getLogger(__name__)
 
 st.set_page_config(
-    page_title="🧪AI Optimizers Playground",
+    page_title="AI Optimizers Playground",
     page_icon="🧪",
     layout="wide"
 )
@@ -38,7 +38,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("AI Optimizers Playground")
+st.title("🧪AI Optimizers Playground")
 st.markdown("Интерактивная площадка для сравнения алгоритмов оптимизации", unsafe_allow_html=True)
 
 if 'trajectories' not in st.session_state:
