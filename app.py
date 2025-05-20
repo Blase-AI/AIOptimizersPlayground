@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 import asyncio
 import json
 import logging
+import io
+import zipfile
 from optimizers import StochasticGradientDescent, GradientDescent, RMSProp, AdamW, Lion, Adan, MARS, AMSGrad, Adagrad, Adam, Sophia, LARS
 
 logging.basicConfig(level=logging.INFO, filename="optimizer_debug.log")
