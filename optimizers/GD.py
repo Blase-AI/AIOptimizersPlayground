@@ -1,14 +1,12 @@
+"""Gradient descent optimizer."""
 import numpy as np
 from typing import List, Optional, Callable
-from .BOptimizer import BaseOptimizer
+from .base import BaseOptimizer
 from .dtime import timed
 
 
 class GradientDescent(BaseOptimizer):
-    """
-    Классический пакетный градиентный спуск (Batch GD) с поддержкой регуляризации,
-    таймерами и историей.
-    """
+    """Batch gradient descent with regularization, history, and hooks."""
 
     def __init__(
         self,
@@ -22,16 +20,18 @@ class GradientDescent(BaseOptimizer):
         decay_rate: float = 1.0,
         verbose: bool = False
     ):
-        """
-        :param learning_rate: начальный шаг обучения
-        :param track_history: сохранять ли историю обновлений параметров
-        :param track_interval: интервал сохранения истории (каждую N-ю итерацию)
-        :param on_step: hook после каждого шага (params, grads, updated)
-        :param reg_type: тип регуляризации: 'none' | 'l1' | 'l2' | 'enet'
-        :param weight_decay: сила регуляризации λ (L2/L1/Enet)
-        :param l1_ratio: для Enet — соотношение L1/L2 (0 ≤ l1_ratio ≤ 1)
-        :param decay_rate: коэффициент экспоненциального затухания learning rate (1.0 = нет затухания)
-        :param verbose: выводить ли информацию об итерациях
+        """Initialize gradient descent.
+
+        Args:
+            learning_rate: Step size.
+            track_history: Whether to store parameter history.
+            track_interval: Store history every N steps.
+            on_step: Callback (params, grads, updated) after each step.
+            reg_type: 'none' | 'l1' | 'l2' | 'enet'.
+            weight_decay: Regularization strength.
+            l1_ratio: L1 fraction for elastic net (0-1).
+            decay_rate: LR decay per step.
+            verbose: Log per-step info.
         """
         super().__init__(
             learning_rate=learning_rate,
@@ -41,28 +41,13 @@ class GradientDescent(BaseOptimizer):
             reg_type=reg_type,
             weight_decay=weight_decay,
             l1_ratio=l1_ratio,
-            verbose=verbose
+            verbose=verbose,
+            decay_rate=decay_rate,
         )
-        assert 0 < decay_rate <= 1, "decay_rate must be in (0, 1]"
-        self.decay_rate = decay_rate
 
     @timed
     def step(self, params: List[np.ndarray], grads: List[np.ndarray]) -> List[np.ndarray]:
-        """
-        Шаг пакетного градиентного спуска: θ = θ - α * ∇J(θ).
-        :param params: список параметров (np.ndarray), например, веса и смещения модели
-        :param grads: список градиентов (np.ndarray), уже включающих регуляризацию
-        :return: список обновлённых параметров
-        :example:
-            params = [np.array([1.0]), np.array([2.0])]
-            grads = [np.array([0.5]), np.array([1.0])]
-            optimizer = GradientDescent(learning_rate=0.1)
-            updated = optimizer.step(params, grads) 
-        """
-        lr = self.learning_rate * self.decay_rate ** self.iteration
+        """Update parameters: theta = theta - lr * grad."""
+        lr = self._effective_lr()
         updated_params = [p - lr * g for p, g in zip(params, grads)]
-
-        if self.on_step:
-            self.on_step(params, grads, updated_params)
-
         return updated_params
