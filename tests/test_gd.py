@@ -28,6 +28,7 @@ def test_step_with_decay_rate():
 
 
 def test_on_step_called():
+    """on_step hook is invoked by update(), not by step() (unified API)."""
     called = {}
 
     def hook(params, grads, updated):
@@ -39,7 +40,7 @@ def test_on_step_called():
     params = [np.array([1.0])]
     grads = [np.array([0.1])]
     optimizer = GradientDescent(learning_rate=0.1, on_step=hook)
-    optimizer.step(params, grads)
+    optimizer.update(params, grads)
 
     assert called.get('called', False)
     np.testing.assert_allclose(called['updated'][0], np.array([0.99]), rtol=1e-6)
@@ -76,8 +77,6 @@ def test_l2_regularization():
     )
 
     updated = optimizer.update(params, grads)
-    expected = 1.0 - 0.1 * (0.5 * 1.0)  
-
     np.testing.assert_allclose(updated[0], np.array([0.95]), rtol=1e-6)
 
 

@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from numpy.typing import NDArray
 from optimizers import Adam  
 
 @pytest.fixture
@@ -83,7 +82,7 @@ def test_gradient_clipping(simple_params_and_grads):
     params, grads = simple_params_and_grads
     optimizer = Adam(learning_rate=0.001, clip_norm=0.5)
     
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     clipped_grads = [g * (0.5 / (np.linalg.norm(g) + 1e-6)) if np.linalg.norm(g) > 0.5 else g for g in grads]
     assert all(np.linalg.norm(cg) <= 0.5 + 1e-6 for cg in clipped_grads)
@@ -120,7 +119,7 @@ def test_on_step_callback(simple_params_and_grads):
         callback_params = p
     
     optimizer = Adam(on_step=on_step)
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     assert callback_called
     assert all(np.allclose(cp, p) for cp, p in zip(callback_params, params))
@@ -129,7 +128,7 @@ def test_regularization_l2(simple_params_and_grads):
     params, grads = simple_params_and_grads
     optimizer = Adam(reg_type='l2', weight_decay=0.1)
     
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     effective_grads = [g + 0.1 * p for g, p in zip(grads, params)]
     assert len(optimizer.m) == len(params)
@@ -141,7 +140,7 @@ def test_amsgrad(simple_params_and_grads):
     params, grads = simple_params_and_grads
     optimizer = Adam(amsgrad=True, learning_rate=0.001)
     
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     assert optimizer.v_hat_max is not None
     assert len(optimizer.v_hat_max) == len(params)

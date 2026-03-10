@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from numpy.typing import NDArray
 from optimizers import Sophia 
 
 @pytest.fixture
@@ -79,7 +78,7 @@ def test_gradient_clipping(simple_params_and_grads):
     optimizer = Sophia(learning_rate=0.001, clip_norm=0.5)
     
     np.random.seed(42)
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     clipped_grads = [g * (0.5 / (np.linalg.norm(g) + 1e-6)) if np.linalg.norm(g) > 0.5 else g for g in grads]
     assert all(np.linalg.norm(cg) <= 0.5 + 1e-6 for cg in clipped_grads)
@@ -125,7 +124,7 @@ def test_on_step_callback(simple_params_and_grads):
     optimizer = Sophia(on_step=on_step)
     
     np.random.seed(42)
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     assert callback_called
     assert all(np.allclose(cp, p) for cp, p in zip(callback_params, params))
@@ -154,7 +153,7 @@ def test_hessian_estimator(simple_params_and_grads):
     h_first = [h.copy() for h in optimizer.h]
 
     new_grads = [2 * g for g in grads]
-    updated_params2 = optimizer.update(updated_params, new_grads)
+    optimizer.update(updated_params, new_grads)
 
     assert all(np.all(optimizer.h[i] >= h_first[i]) for i in range(len(params)))
 
