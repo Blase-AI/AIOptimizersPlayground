@@ -1,0 +1,42 @@
+[project]
+name = "ai-optimizers-playground"
+version = "0.1.0"
+description = "Интерактивная площадка для сравнения алгоритмов оптимизации (SGD, Adam, AdamW, Lion и др.)"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = "MIT"
+keywords = ["optimization", "streamlit", "machine-learning", "gradient-descent", "adam"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "plotly>=5.0",
+    "streamlit>=1.28",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+
+[tool.setuptools.packages.find]
+include = ["optimizers*", "core*", "playground*", "pages*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
