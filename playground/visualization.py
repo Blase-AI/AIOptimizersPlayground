@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
+from core.i18n import t
 from .state import generate_test_data
 from .styles import OPTIMIZER_COLORS, PLOTLY_LAYOUT_DEFAULTS
 
@@ -24,20 +25,20 @@ def render_visualization_tab(tab, optimizers, test_func, show_surface, show_3d, 
             st.markdown(
                 '<div class="pg-empty-card">'
                 '<div class="pg-empty-icon"></div>'
-                '<div class="pg-empty-title">Нет данных для визуализации</div>'
-                '<div class="pg-empty-text">Выберите оптимизаторы в боковой панели и нажмите '
-                '<strong>«Запустить симуляцию»</strong>, чтобы построить траектории на ландшафте функции.</div>'
+                f'<div class="pg-empty-title">{t("viz.no_data_title")}</div>'
+                f'<div class="pg-empty-text">{t("viz.no_data_text")}</div>'
                 '</div>',
                 unsafe_allow_html=True,
             )
         elif st.session_state.get("run_simulation") and not trajectories:
-            st.info("Симуляция выполняется...")
+            st.info(t("viz.running"))
         elif trajectories:
-            st.success("Симуляция завершена.")
+            st.success(t("viz.done"))
 
         if not trajectories:
             return
 
+        trajectories_no_reg = st.session_state.get("trajectories_no_reg", {})
         resolution = st.session_state.get("resolution", 100)
         bounds = st.session_state.get("bounds", 5.0)
         X, Y, Z = generate_test_data(test_func, resolution, bounds)
@@ -72,16 +73,42 @@ def render_visualization_tab(tab, optimizers, test_func, show_surface, show_3d, 
                         x=df["x"], y=df["y"], z=df["loss"],
                         mode="markers+lines",
                         name=opt_name,
-                        marker=dict(size=4, color=opt_colors[idx]),
-                        line=dict(width=2, color=opt_colors[idx]),
+                        marker=dict(size=4, color=opt_colors[idx % len(opt_colors)]),
+                        line=dict(width=2, color=opt_colors[idx % len(opt_colors)]),
                         showlegend=True,
                         customdata=df[["iteration", "loss"]],
-                        hovertemplate="Итерация: %{customdata[0]}<br>Loss: %{customdata[1]:.4f}<br>x: %{x:.2f}<br>y: %{y:.2f}",
+                        hovertemplate=f"{t('viz.hover_iter')}: %{{customdata[0]}}<br>Loss: %{{customdata[1]:.4f}}<br>x: %{{x:.2f}}<br>y: %{{y:.2f}}",
+                    )
+                )
+            no_reg_suffix = t("viz.no_reg")
+            for idx, opt_name in enumerate(optimizers):
+                data = trajectories_no_reg.get(opt_name, {})
+                if not data.get("traj") or not data.get("loss"):
+                    continue
+                min_len = min(len(data["traj"]), len(data["loss"]))
+                if min_len == 0:
+                    continue
+                df = pd.DataFrame({
+                    "x": [p[0] for p in data["traj"][:min_len]],
+                    "y": [p[1] for p in data["traj"][:min_len]],
+                    "loss": data["loss"][:min_len],
+                    "iteration": list(range(min_len)),
+                })
+                fig.add_trace(
+                    go.Scatter3d(
+                        x=df["x"], y=df["y"], z=df["loss"],
+                        mode="markers+lines",
+                        name=f"{opt_name}{no_reg_suffix}",
+                        marker=dict(size=3, color=opt_colors[idx % len(opt_colors)], symbol="circle-open"),
+                        line=dict(width=1.5, color=opt_colors[idx % len(opt_colors)], dash="dash"),
+                        showlegend=True,
+                        customdata=df[["iteration", "loss"]],
+                        hovertemplate=f"{t('viz.hover_iter')}: %{{customdata[0]}}<br>Loss: %{{customdata[1]:.4f}}<br>x: %{{x:.2f}}<br>y: %{{y:.2f}}",
                     )
                 )
             _no_title = {k: v for k, v in PLOTLY_LAYOUT_DEFAULTS.items() if k not in ("xaxis", "yaxis", "title")}
             fig.update_layout(
-                title=dict(text=f"Сравнение оптимизаторов · {test_func} (3D)", font=dict(size=18)),
+                title=dict(text=t("viz.title_3d").format(test_func), font=dict(size=18)),
                 scene=dict(
                     xaxis=dict(backgroundcolor="rgba(248,250,252,0.9)", gridcolor="#e2e8f0"),
                     yaxis=dict(backgroundcolor="rgba(248,250,252,0.9)", gridcolor="#e2e8f0"),
@@ -113,17 +140,42 @@ def render_visualization_tab(tab, optimizers, test_func, show_surface, show_3d, 
                         x=df["x"], y=df["y"],
                         mode="markers+lines",
                         name=opt_name,
-                        marker=dict(size=8, color=opt_colors[idx]),
-                        line=dict(width=2, color=opt_colors[idx]),
+                        marker=dict(size=8, color=opt_colors[idx % len(opt_colors)]),
+                        line=dict(width=2, color=opt_colors[idx % len(opt_colors)]),
                         showlegend=True,
                         customdata=df[["iteration"]],
-                        hovertemplate="Итерация: %{customdata[0]}<br>x: %{x:.2f}<br>y: %{y:.2f}",
+                        hovertemplate=f"{t('viz.hover_iter')}: %{{customdata[0]}}<br>x: %{{x:.2f}}<br>y: %{{y:.2f}}",
+                    )
+                )
+            no_reg_suffix = t("viz.no_reg")
+            for idx, opt_name in enumerate(optimizers):
+                data = trajectories_no_reg.get(opt_name, {})
+                if not data.get("traj"):
+                    continue
+                min_len = min(len(data["traj"]), len(data.get("loss", [])) or len(data["traj"]))
+                if min_len == 0:
+                    continue
+                df = pd.DataFrame({
+                    "x": [p[0] for p in data["traj"][:min_len]],
+                    "y": [p[1] for p in data["traj"][:min_len]],
+                    "iteration": list(range(min_len)),
+                })
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["x"], y=df["y"],
+                        mode="markers+lines",
+                        name=f"{opt_name}{no_reg_suffix}",
+                        marker=dict(size=5, color=opt_colors[idx % len(opt_colors)], symbol="circle-open"),
+                        line=dict(width=1.5, color=opt_colors[idx % len(opt_colors)], dash="dash"),
+                        showlegend=True,
+                        customdata=df[["iteration"]],
+                        hovertemplate=f"{t('viz.hover_iter')}: %{{customdata[0]}}<br>x: %{{x:.2f}}<br>y: %{{y:.2f}}",
                     )
                 )
             _layout_2d = {k: v for k, v in PLOTLY_LAYOUT_DEFAULTS.items() if k not in ("title", "margin")}
             fig.update_layout(
                 **_layout_2d,
-                title=dict(text=f"Сравнение оптимизаторов · {test_func} (2D)", font=dict(size=18)),
+                title=dict(text=t("viz.title_2d").format(test_func), font=dict(size=18)),
                 margin=dict(l=56, r=120, t=56, b=48),
             )
 
@@ -159,11 +211,34 @@ def render_visualization_tab(tab, optimizers, test_func, show_surface, show_3d, 
                                 x=df["x"], y=df["y"], z=df["loss"],
                                 mode="markers+lines",
                                 name=opt_name,
-                                marker=dict(size=4, color=opt_colors[idx]),
-                                line=dict(width=2, color=opt_colors[idx]),
+                                marker=dict(size=4, color=opt_colors[idx % len(opt_colors)]),
+                                line=dict(width=2, color=opt_colors[idx % len(opt_colors)]),
                                 showlegend=True,
                             )
                         )
+                for idx, opt_name in enumerate(optimizers):
+                    data = trajectories_no_reg.get(opt_name, {})
+                    if not data.get("traj") or not data.get("loss"):
+                        continue
+                    i_no = min(i, len(data["traj"]), len(data["loss"]))
+                    if i_no == 0:
+                        continue
+                    df = pd.DataFrame({
+                        "x": [p[0] for p in data["traj"][:i_no]],
+                        "y": [p[1] for p in data["traj"][:i_no]],
+                        "loss": data["loss"][:i_no],
+                        "iteration": list(range(i_no)),
+                    })
+                    frame_data.append(
+                        go.Scatter3d(
+                            x=df["x"], y=df["y"], z=df["loss"],
+                            mode="markers+lines",
+                            name=f"{opt_name}{t('viz.no_reg')}",
+                            marker=dict(size=3, color=opt_colors[idx % len(opt_colors)], symbol="circle-open"),
+                            line=dict(width=1.5, color=opt_colors[idx % len(opt_colors)], dash="dash"),
+                            showlegend=True,
+                        )
+                    )
                 frames.append(go.Frame(data=frame_data, name=str(i)))
             fig.update(frames=frames)
             fig.update_layout(

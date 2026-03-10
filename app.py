@@ -1,18 +1,29 @@
-"""AI Optimizers Playground application entry point.
+"""AI Optimizers Playground — entry point.
 
-Run: streamlit run app.py
+Usage:
+    streamlit run app.py
 
-Pages (Streamlit multipage):
-    Home (this file)
-    Playground: optimizer comparison (pages/1_Playground.py)
+Multipage app: Home (this file), Playground (pages/1_Playground.py), Glossary (pages/2_Glossary.py).
 """
+import logging
+
 import streamlit as st
+
+from core.i18n import render_language_switcher, t
+
+logging.getLogger().setLevel(logging.WARNING)
+logging.getLogger("optimizers").setLevel(logging.WARNING)
+logging.getLogger("core").setLevel(logging.WARNING)
 
 st.set_page_config(
     page_title="AI Optimizers Playground",
-    page_icon=None,
-    layout="wide",
+    page_icon="🧪",
+    layout="wide"
 )
+
+if "lang" not in st.session_state:
+    st.session_state["lang"] = "ru"
+render_language_switcher()
 
 st.markdown("""
 <style>
@@ -26,18 +37,23 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("AI Optimizers Playground")
-st.markdown("Интерактивная площадка для сравнения алгоритмов оптимизации.")
+st.title(t("app.title"))
+st.markdown(t("app.subtitle"))
 
-st.info(
-    "Выберите **Playground** в боковой панели, чтобы запустить сравнение оптимизаторов "
-    "на тестовых функциях (Rastrigin, Rosenbrock, Ackley и др.)."
-)
+st.info(t("app.info_playground"))
 
 st.markdown("---")
-st.markdown("""
-### О проекте
-- **SGD, GD, RMSProp, Adagrad, Adam, AdamW, AMSGrad, Sophia, Lion, Adan, MARS, LARS** — все оптимизаторы в одном месте.
-- Визуализация траекторий в 2D/3D, метрики и экспорт результатов.
-- Единый API: везде используется `optimizer.update(params, grads)` для шага с учётом итерации и регуляризации.
-""")
+st.markdown("### " + t("app.guide_title"))
+col1, col2 = st.columns(2)
+with col1:
+    with st.container(border=True):
+        st.markdown("**" + t("app.how_to_use") + "**")
+        st.markdown(t("app.how_to_use_text"))
+with col2:
+    with st.container(border=True):
+        st.markdown("**" + t("app.params_tips") + "**")
+        st.markdown(t("app.params_tips_text"))
+
+st.markdown("---")
+st.markdown("### " + t("app.about_title"))
+st.markdown(t("app.about_text"))
