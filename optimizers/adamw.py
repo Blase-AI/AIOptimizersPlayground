@@ -8,8 +8,8 @@ from .dtime import timed
 logger = logging.getLogger(__name__)
 
 
-class AMSGrad(BaseOptimizer):
-    """Adam variant keeping max of second moment. Decoupled weight decay, gradient clipping, LR decay."""
+class AdamW(BaseOptimizer):
+    """Adam with decoupled weight decay (Loshchilov & Hutter). Gradient clipping, LR decay, history."""
 
     def __init__(
         self,
@@ -25,7 +25,7 @@ class AMSGrad(BaseOptimizer):
         on_step: Optional[Callable[[List[np.ndarray], List[np.ndarray], List[np.ndarray]], None]] = None,
         verbose: bool = False
     ):
-        """Initialize AMSGrad. Uses max of second moment for denominator."""
+        """Initialize AdamW. Uses decoupled weight decay; reg_type in base is set to 'none'."""
         super().__init__(
             learning_rate=learning_rate,
             track_history=track_history,
@@ -48,14 +48,12 @@ class AMSGrad(BaseOptimizer):
         self.weight_decay = weight_decay
         self.m: Optional[List[NDArray[np.float64]]] = None
         self.v: Optional[List[NDArray[np.float64]]] = None
-        self.v_hat: Optional[List[NDArray[np.float64]]] = None
 
     def reset(self):
         """Reset iteration, history, and moment estimates."""
         super().reset()
         self.m = None
         self.v = None
-        self.v_hat = None
 
     @timed
     def step(
@@ -63,11 +61,10 @@ class AMSGrad(BaseOptimizer):
         params: List[NDArray[np.float64]],
         grads: List[NDArray[np.float64]]
     ) -> List[NDArray[np.float64]]:
-        """AMSGrad step: Adam-like update with max of second moment."""
-        if self.m is None or self.v is None or self.v_hat is None:
+        """AdamW step: Adam update plus decoupled weight decay."""
+        if self.m is None or self.v is None:
             self.m = [np.zeros_like(p) for p in params]
             self.v = [np.zeros_like(p) for p in params]
-            self.v_hat = [np.zeros_like(p) for p in params]
 
         lr = self._effective_lr()
         t = self.iteration + 1
@@ -75,25 +72,25 @@ class AMSGrad(BaseOptimizer):
 
         for i, (p, g) in enumerate(zip(params, grads)):
             g = self._clip_gradient(g)
-            m_prev = self.m[i]
-            v_prev = self.v[i]
-            v_hat_prev = self.v_hat[i]
+            m_prev, v_prev = self.m[i], self.v[i]
             m_new = self.beta1 * m_prev + (1 - self.beta1) * g
             v_new = self.beta2 * v_prev + (1 - self.beta2) * (g * g)
-            v_hat_new = np.maximum(v_hat_prev, v_new)
-            self.m[i] = m_new
-            self.v[i] = v_new
-            self.v_hat[i] = v_hat_new
+            self.m[i], self.v[i] = m_new, v_new
 
-            update = lr * m_new / (np.sqrt(v_hat_new) + self.eps)
-            decayed = p * (1 - lr * self.weight_decay)
-            new_param = decayed - update
+            m_hat = m_new / (1 - self.beta1 ** t)
+            v_hat = v_new / (1 - self.beta2 ** t)
+
+            update = lr * m_hat / (np.sqrt(v_hat) + self.eps)
+
+            decayed_param = p * (1 - lr * self.weight_decay)
+            new_param = decayed_param - update
             updated_params.append(new_param)
 
             if self.verbose:
                 logger.debug(
-                    "[AMSGrad] iter %d param %d ||grad||=%.4f ||update||=%.4f",
+                    "[AdamW] iter %d param %d ||grad||=%.4f ||update||=%.4f wd=%.6f",
                     t, i, float(np.linalg.norm(g)), float(np.linalg.norm(update)),
+                    self.weight_decay,
                 )
 
         return updated_params
@@ -112,5 +109,5 @@ class AMSGrad(BaseOptimizer):
         base = super().__repr__().rstrip(')')
         return (
             f"{base}, beta1={self.beta1}, beta2={self.beta2}, eps={self.eps}, "
-            f"wd={self.weight_decay})"
+            f"weight_decay={self.weight_decay})"
         )

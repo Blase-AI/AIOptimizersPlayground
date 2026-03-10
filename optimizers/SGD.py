@@ -1,15 +1,17 @@
-import numpy as np
-from typing import List, Optional, Callable
+"""SGD optimizer with optional momentum."""
 import logging
-from .BOptimizer import BaseOptimizer
+from typing import List, Optional, Callable
+
+import numpy as np
+
+from .base import BaseOptimizer
 from .dtime import timed
+
+logger = logging.getLogger(__name__)
 
 
 class StochasticGradientDescent(BaseOptimizer):
-    """
-    Стохастический градиентный спуск (SGD) с опциональным импульсом, регуляризацией,
-    обрезкой градиентов, таймерами и историей.
-    """
+    """SGD with optional momentum, regularization, gradient clipping, history."""
 
     def __init__(
         self,
@@ -25,23 +27,20 @@ class StochasticGradientDescent(BaseOptimizer):
         on_step: Optional[Callable[[List[np.ndarray], List[np.ndarray], List[np.ndarray]], None]] = None,
         verbose: bool = False
     ):
-        """
-        :param learning_rate: начальный шаг обучения
-        :param momentum: коэффициент импульса (0.0 = чистый SGD)
-        :param reg_type: тип регуляризации: 'none' | 'l1' | 'l2' | 'enet'
-        :param weight_decay: сила регуляризации λ (L1/L2/Enet)
-        :param l1_ratio: для Enet — доля L1 в elastic net (0 ≤ l1_ratio ≤ 1)
-        :param clip_norm: максимальная норма градиента (если не None)
-        :param decay_rate: коэффициент экспоненциального затухания learning rate (1.0 = нет затухания)
-        :param track_history: сохранять ли историю параметров
-        :param track_interval: интервал сохранения истории (каждую N-ю итерацию)
-        :param on_step: hook после каждого шага (params, grads, updated)
-        :param verbose: выводить ли информацию об итерациях
-        :example:
-            params = [np.array([1.0]), np.array([2.0])]
-            grads = [np.array([0.5]), np.array([1.0])]
-            optimizer = StochasticGradientDescent(learning_rate=0.1, momentum=0.9)
-            updated = optimizer.step(params, grads) 
+        """Initialize SGD.
+
+        Args:
+            learning_rate: Step size.
+            momentum: Momentum coefficient (0 = plain SGD).
+            reg_type: 'none' | 'l1' | 'l2' | 'enet'.
+            weight_decay: Regularization strength.
+            l1_ratio: L1 fraction for elastic net (0-1).
+            clip_norm: Max gradient norm (None = no clip).
+            decay_rate: LR decay per step.
+            track_history: Store parameter history.
+            track_interval: Store every N steps.
+            on_step: Callback after each step.
+            verbose: Log per-step info.
         """
         super().__init__(
             learning_rate=learning_rate,
@@ -51,43 +50,29 @@ class StochasticGradientDescent(BaseOptimizer):
             reg_type=reg_type,
             weight_decay=weight_decay,
             l1_ratio=l1_ratio,
-            verbose=verbose
+            verbose=verbose,
+            clip_norm=clip_norm,
+            decay_rate=decay_rate,
         )
         assert 0 <= momentum <= 1, "momentum must be in [0, 1]"
-        assert clip_norm is None or clip_norm > 0, "clip_norm must be positive or None"
-        assert 0 < decay_rate <= 1, "decay_rate must be in (0, 1]"
         self.momentum = momentum
-        self.clip_norm = clip_norm
-        self.decay_rate = decay_rate
         self.velocities: Optional[List[np.ndarray]] = None
 
     def reset(self):
-        """
-        Сброс состояния оптимизатора (итерация, история, скорости).
-        """
+        """Reset iteration, history, and velocities."""
         super().reset()
         self.velocities = None
 
     @timed
     def step(self, params: List[np.ndarray], grads: List[np.ndarray]) -> List[np.ndarray]:
-        """
-        Шаг стохастического градиентного спуска с импульсом:
-            v = μ * v + α * ∇J(θ), θ = θ - v
-        :param params: список параметров (np.ndarray), например, веса и смещения модели
-        :param grads: список градиентов (np.ndarray), уже включающих регуляризацию
-        :return: список обновлённых параметров
-        """
+        """SGD step with momentum: v = mu*v + lr*g, theta = theta - v."""
         if self.velocities is None:
             self.velocities = [np.zeros_like(p) for p in params]
 
-        lr = self.learning_rate * self.decay_rate ** self.iteration
+        lr = self._effective_lr()
         updated_params: List[np.ndarray] = []
         for i, (p, g) in enumerate(zip(params, grads)):
-            if self.clip_norm is not None:
-                norm = np.linalg.norm(g)
-                if norm > self.clip_norm:
-                    g = g * (self.clip_norm / (norm + 1e-6))
-
+            g = self._clip_gradient(g)
             v_prev = self.velocities[i]
             v_new = self.momentum * v_prev + lr * g
             self.velocities[i] = v_new
@@ -96,18 +81,16 @@ class StochasticGradientDescent(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logging.info(
-                    f"[SGD] Iter {self.iteration+1} | Param {i} | reg={self.reg_type} | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(v_new):.4f}"
+                logger.debug(
+                    "[SGD] iter %d param %d reg=%s ||grad||=%.4f ||update||=%.4f",
+                    self.iteration + 1, i, self.reg_type,
+                    float(np.linalg.norm(g)), float(np.linalg.norm(v_new)),
                 )
 
         return updated_params
 
     def get_config(self) -> dict:
+        """Return config dict including momentum."""
         cfg = super().get_config()
-        cfg.update({
-            "momentum": self.momentum,
-            "clip_norm": self.clip_norm,
-            "decay_rate": self.decay_rate
-        })
+        cfg.update({"momentum": self.momentum})
         return cfg

@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from numpy.typing import NDArray
 from optimizers import LARS  
 
 @pytest.fixture
@@ -70,7 +69,7 @@ def test_gradient_clipping(simple_params_and_grads):
     params, grads = simple_params_and_grads
     optimizer = LARS(learning_rate=0.01, clip_norm=0.5)
     
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     clipped_grads = [g * (0.5 / (np.linalg.norm(g) + 1e-6)) if np.linalg.norm(g) > 0.5 else g for g in grads]
     assert all(np.linalg.norm(cg) <= 0.5 + 1e-6 for cg in clipped_grads)
@@ -81,9 +80,6 @@ def test_local_lr_scaling(simple_params_and_grads):
     
     updated_params = optimizer.update(params, grads)
     
-    p_norm = np.linalg.norm(params[0]) 
-    g_norm = np.linalg.norm(grads[0])   
-    expected_local_lr = 0.001 * p_norm / (g_norm + 0.01 * p_norm + 1e-6)
     diff = np.abs(params[0] - updated_params[0])
     assert np.all(diff > 0) 
 
@@ -136,7 +132,7 @@ def test_on_step_callback(simple_params_and_grads):
         callback_params = p
     
     optimizer = LARS(on_step=on_step)
-    updated_params = optimizer.update(params, grads)
+    optimizer.update(params, grads)
     
     assert callback_called
     assert all(np.allclose(cp, p) for cp, p in zip(callback_params, params))
