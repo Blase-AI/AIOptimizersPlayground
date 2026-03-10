@@ -100,9 +100,9 @@ class Adan(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[Adan] Iter {t} | Param {i} | reg=none | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(update):.4f}"
+                logger.debug(
+                    "[Adan] iter %d param %d ||grad||=%.4f ||update||=%.4f",
+                    t, i, float(np.linalg.norm(g)), float(np.linalg.norm(update)),
                 )
 
             self.g_prev[i] = g

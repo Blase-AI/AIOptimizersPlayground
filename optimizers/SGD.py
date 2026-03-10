@@ -1,9 +1,13 @@
 """SGD optimizer with optional momentum."""
-import numpy as np
-from typing import List, Optional, Callable
 import logging
+from typing import List, Optional, Callable
+
+import numpy as np
+
 from .base import BaseOptimizer
 from .dtime import timed
+
+logger = logging.getLogger(__name__)
 
 
 class StochasticGradientDescent(BaseOptimizer):
@@ -77,9 +81,10 @@ class StochasticGradientDescent(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logging.info(
-                    f"[SGD] Iter {self.iteration+1} | Param {i} | reg={self.reg_type} | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(v_new):.4f}"
+                logger.debug(
+                    "[SGD] iter %d param %d reg=%s ||grad||=%.4f ||update||=%.4f",
+                    self.iteration + 1, i, self.reg_type,
+                    float(np.linalg.norm(g)), float(np.linalg.norm(v_new)),
                 )
 
         return updated_params

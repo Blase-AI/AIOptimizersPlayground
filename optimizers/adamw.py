@@ -87,9 +87,10 @@ class AdamW(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[AdamW] Iter {t} | Param {i} | reg=none | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(update):.4f} | wd={self.weight_decay}"
+                logger.debug(
+                    "[AdamW] iter %d param %d ||grad||=%.4f ||update||=%.4f wd=%.6f",
+                    t, i, float(np.linalg.norm(g)), float(np.linalg.norm(update)),
+                    self.weight_decay,
                 )
 
         return updated_params

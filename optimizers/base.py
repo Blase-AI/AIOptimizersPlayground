@@ -1,8 +1,12 @@
 """Base optimizer and gradient clipping utility."""
 from abc import ABC, abstractmethod
-from typing import List, Callable, Optional
-import numpy as np
 import copy
+import logging
+from typing import List, Callable, Optional
+
+import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def clip_gradient(g: np.ndarray, clip_norm: Optional[float], eps: float = 1e-10) -> np.ndarray:
@@ -76,6 +80,10 @@ class BaseOptimizer(ABC):
         self.clip_norm = clip_norm
         self.decay_rate = decay_rate
 
+    def get_local_lr(self, params: List[np.ndarray], grads: List[np.ndarray]) -> Optional[float]:
+        """Return per-step local learning rate if the optimizer tracks it (e.g. LARS). Otherwise None."""
+        return None
+
     @abstractmethod
     def step(self, params: List[np.ndarray], grads: List[np.ndarray]) -> List[np.ndarray]:
         """Update parameters given gradients.
@@ -128,7 +136,7 @@ class BaseOptimizer(ABC):
 
         if self.verbose:
             param_norm = sum(np.linalg.norm(p) for p in updated)
-            print(f"Iteration {self.iteration}, param_norm: {param_norm:.4f}")
+            logger.debug("Iteration %d, param_norm: %.4f", self.iteration, param_norm)
 
         if self.on_step:
             self.on_step(params, regs, updated)

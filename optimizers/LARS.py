@@ -85,13 +85,29 @@ class LARS(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[LARS] Iter {t} | Param {i} | reg=none | "
-                    f"||grad||={grad_norm:.4f} | local_lr={local_lr:.4f} | "
-                    f"||update||={np.linalg.norm(update):.4f}"
+                logger.debug(
+                    "[LARS] iter %d param %d ||grad||=%.4f local_lr=%.4f ||update||=%.4f",
+                    t, i, grad_norm, local_lr, float(np.linalg.norm(update)),
                 )
 
         return updated_params
+
+    def get_local_lr(
+        self,
+        params: List[NDArray[np.float64]],
+        grads: List[NDArray[np.float64]],
+    ) -> Optional[float]:
+        """Return the layer-wise adaptive learning rate for the first parameter (for metrics)."""
+        if not params or not grads:
+            return None
+        p, g = params[0], grads[0]
+        param_norm = float(np.linalg.norm(p))
+        grad_norm = float(np.linalg.norm(g))
+        if param_norm > 0 and grad_norm > 0:
+            return self.trust_coeff * param_norm / (
+                grad_norm + self.weight_decay * param_norm + 1e-6
+            )
+        return 1.0
 
     def get_config(self) -> dict:
         cfg = super().get_config()

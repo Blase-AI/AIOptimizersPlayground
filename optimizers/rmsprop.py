@@ -91,9 +91,10 @@ class RMSProp(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[RMSProp] Iter {t} | Param {i} | reg={self.reg_type} | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(update):.4f}"
+                logger.debug(
+                    "[RMSProp] iter %d param %d reg=%s ||grad||=%.4f ||update||=%.4f",
+                    t, i, self.reg_type,
+                    float(np.linalg.norm(g)), float(np.linalg.norm(update)),
                 )
 
         return updated_params

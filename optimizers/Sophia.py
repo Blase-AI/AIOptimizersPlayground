@@ -81,7 +81,6 @@ class Sophia(BaseOptimizer):
             m_new = self.beta1 * m_prev + (1 - self.beta1) * g
             self.m[i] = m_new
 
-            # Hutchinson's estimator: случайный вектор Rademacher
             v = np.random.choice([-1, 1], size=g.shape)
             h_est = np.abs(g * v)
             h_new = self.beta2 * h_prev + (1 - self.beta2) * h_est
@@ -93,10 +92,10 @@ class Sophia(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[Sophia] Iter {t} | Param {i} | reg=none | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||hessian||={np.linalg.norm(h_new):.4f} | "
-                    f"||update||={np.linalg.norm(update):.4f}"
+                logger.debug(
+                    "[Sophia] iter %d param %d ||grad||=%.4f ||hessian||=%.4f ||update||=%.4f",
+                    t, i, float(np.linalg.norm(g)), float(np.linalg.norm(h_new)),
+                    float(np.linalg.norm(update)),
                 )
 
         return updated_params

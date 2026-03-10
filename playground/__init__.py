@@ -9,7 +9,6 @@ from .run import run_simulation_loop
 from .visualization import render_visualization_tab
 from .metrics import render_metrics_tab
 from .description import render_description_tab
-from .guide import render_guide_tab
 from .export import handle_export
 
 __all__ = [
@@ -19,6 +18,5 @@ __all__ = [
     "render_visualization_tab",
     "render_metrics_tab",
     "render_description_tab",
-    "render_guide_tab",
     "handle_export",
 ]

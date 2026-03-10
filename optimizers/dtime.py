@@ -1,19 +1,26 @@
-"""Decorator for timing function execution."""
-import time
+"""Decorator for timing function execution (logs at DEBUG level)."""
 import functools
 import logging
+import time
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def timed(func):
-    """Decorator that logs execution time of the wrapped function."""
+    """Log execution time of the wrapped function at DEBUG level.
+
+    Args:
+        func: Callable to wrap.
+
+    Returns:
+        Wrapper that preserves func's signature and docstring.
+    """
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         start = time.perf_counter()
         result = func(*args, **kwargs)
         duration = time.perf_counter() - start
-        logging.info(f"{func.__name__} executed in {duration:.6f} seconds")
+        logger.debug("%s executed in %.6f s", func.__name__, duration)
         return result
     return wrapper

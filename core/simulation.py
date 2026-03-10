@@ -1,4 +1,4 @@
-"""Simulation loop: run optimization with optional noise. No Streamlit."""
+"""Optimization loop: run optimizer steps with optional gradient noise. No Streamlit."""
 import asyncio
 import logging
 import numpy as np
@@ -43,9 +43,7 @@ async def run_optimization(
     func_and_grad = test_functions[test_func]
     losses = [func_and_grad["func"](start_params)]
     grad_norms: List[float] = []
-    local_lrs: Optional[List[float]] = None
-    if opt.__class__.__name__ == "LARS":
-        local_lrs = []
+    local_lrs: Optional[List[float]] = []
 
     for i in range(iterations):
         grad = func_and_grad["grad"](params[0]).copy()
@@ -53,7 +51,12 @@ async def run_optimization(
             grad += np.random.normal(0, noise_level, size=grad.shape)
 
         if np.any(np.isnan(grad)) or np.any(np.isinf(grad)):
-            raise ValueError(f"Некорректные градиенты для {opt.__class__.__name__}")
+            raise ValueError(f"Invalid gradients for {opt.__class__.__name__}")
+
+        local_lr = opt.get_local_lr(params, [grad])
+        if local_lr is not None:
+            local_lrs.append(local_lr)
+            logger.debug("%s | local_lr: %.6f", opt.__class__.__name__, local_lr)
 
         updated = opt.update(params, [grad])
         updated[0] = np.clip(updated[0], -bounds, bounds)
@@ -63,20 +66,11 @@ async def run_optimization(
         grad_norms.append(float(np.linalg.norm(grad)))
         params = updated
 
-        logger.info(
-            f"{opt.__class__.__name__} | Iter {i+1} | Loss: {loss:.4f} | Grad Norm: {grad_norms[-1]:.4f}"
+        logger.debug(
+            "%s | Iter %d | Loss: %.4f | Grad norm: %.4f",
+            opt.__class__.__name__, i + 1, loss, grad_norms[-1],
         )
-        if opt.__class__.__name__ == "LARS":
-            param_norm = np.linalg.norm(params[0])
-            grad_norm = np.linalg.norm(grad)
-            local_lr = (
-                opt.trust_coeff * param_norm / (grad_norm + opt.weight_decay * param_norm + 1e-6)
-                if param_norm > 0 and grad_norm > 0
-                else 1.0
-            )
-            local_lrs.append(local_lr)
-            logger.info(f"LARS | local_lr: {local_lr:.6f}")
 
         await asyncio.sleep(0)
 
-    return trajectory, losses, grad_norms, local_lrs
+    return trajectory, losses, grad_norms, local_lrs if local_lrs else None

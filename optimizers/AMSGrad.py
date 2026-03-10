@@ -91,9 +91,9 @@ class AMSGrad(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[AMSGrad] Iter {t} | Param {i} | reg=none | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(update):.4f}"
+                logger.debug(
+                    "[AMSGrad] iter %d param %d ||grad||=%.4f ||update||=%.4f",
+                    t, i, float(np.linalg.norm(g)), float(np.linalg.norm(update)),
                 )
 
         return updated_params

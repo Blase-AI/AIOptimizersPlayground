@@ -83,9 +83,9 @@ class Lion(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[Lion] Iter {t} | Param {i} | reg=none | "
-                    f"||grad||={np.linalg.norm(g):.4f} | sign-step sum={np.sum(np.sign(v_hat)):.4f}"
+                logger.debug(
+                    "[Lion] iter %d param %d ||grad||=%.4f sign_sum=%.4f",
+                    t, i, float(np.linalg.norm(g)), float(np.sum(np.sign(v_hat))),
                 )
 
         return updated_params

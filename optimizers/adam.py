@@ -1,9 +1,13 @@
+import logging
+from typing import List, Optional, Callable
+
 import numpy as np
 from numpy.typing import NDArray
-from typing import List, Optional, Callable
-import logging
+
 from .base import BaseOptimizer
 from .dtime import timed
+
+logger = logging.getLogger(__name__)
 
 
 class Adam(BaseOptimizer):
@@ -116,9 +120,10 @@ class Adam(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logging.info(
-                    f"[Adam] Iter {t} | Param {i} | reg={self.reg_type} | "
-                    f"||grad||={np.linalg.norm(g):.4f} | ||update||={np.linalg.norm(update):.4f}"
+                logger.debug(
+                    "[Adam] iter %d param %d reg=%s ||grad||=%.4f ||update||=%.4f",
+                    t, i, self.reg_type,
+                    float(np.linalg.norm(g)), float(np.linalg.norm(update)),
                 )
 
         return updated_params

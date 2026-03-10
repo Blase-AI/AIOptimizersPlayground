@@ -96,9 +96,10 @@ class MARS(BaseOptimizer):
             updated_params.append(new_param)
 
             if self.verbose:
-                logger.info(
-                    f"[MARS] Iter {step_idx} | Param {i} | reg={self.reg_type} | "
-                    f"||avg_grad||={np.linalg.norm(avg_new):.4f} | ||vel||={np.linalg.norm(v_hat):.4f}"
+                logger.debug(
+                    "[MARS] iter %d param %d reg=%s ||avg_grad||=%.4f ||vel||=%.4f",
+                    step_idx, i, self.reg_type,
+                    float(np.linalg.norm(avg_new)), float(np.linalg.norm(v_hat)),
                 )
 
         return updated_params
