@@ -1,16 +1,16 @@
 """Optimizers and utilities for ML (GD, SGD, Adam, AdamW, Lion, etc.)."""
 
-from .sgd import StochasticGradientDescent
-from .gd import GradientDescent
+from .SGD import StochasticGradientDescent
+from .GD import GradientDescent
 from .rmsprop import RMSProp
 from .adamw import AdamW
 from .lion import Lion
 from .adan import Adan
 from .mars import MARS
 from .adagrad import Adagrad
-from .sophia import Sophia
-from .amsgrad import AMSGrad
-from .lars import LARS
+from .Sophia import Sophia
+from .AMSGrad import AMSGrad
+from .LARS import LARS
 from .adam import Adam
 from .base import BaseOptimizer, clip_gradient
 from .dtime import timed

@@ -5,17 +5,17 @@ To add an optimizer: add one entry to OPTIMIZER_REGISTRY and implement the class
 from typing import Dict, Tuple, Any, Type, List, Union
 
 from .base import BaseOptimizer
-from .sgd import StochasticGradientDescent
-from .gd import GradientDescent
+from .SGD import StochasticGradientDescent
+from .GD import GradientDescent
 from .rmsprop import RMSProp
 from .adamw import AdamW
 from .lion import Lion
 from .adan import Adan
 from .mars import MARS
 from .adagrad import Adagrad
-from .sophia import Sophia
-from .amsgrad import AMSGrad
-from .lars import LARS
+from .Sophia import Sophia
+from .AMSGrad import AMSGrad
+from .LARS import LARS
 from .adam import Adam
 
 ParamSpec = Tuple[float, float, float, float, str]
